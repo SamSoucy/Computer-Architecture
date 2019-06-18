@@ -1,6 +1,7 @@
 #include "cpu.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #define DATA_LEN 6
 
@@ -8,8 +9,9 @@ unsigned char cpu_ram_read(struct cpu *cpu, unsigned char i){
   return cpu->ram[i];
 }
 
-unsigned char cpu_ram_write(struct cpu *cpu, int i, unsigned char value){
-  return cpu->ram[i] = value;
+unsigned char cpu_ram_write(struct cpu *cpu, unsigned char i, unsigned char value){
+  cpu->ram[i] = value;
+  return 0;
 }
 
 
@@ -61,7 +63,7 @@ void cpu_run(struct cpu *cpu)
 
   while (running) {
     // TODO
-    // 1. Get the value of the current instruction (in address PC).
+    // 1. Get the value of the current instruction (in address PC)
     // 2. Figure out how many operands this next instruction requires
     // 3. Get the appropriate value(s) of the operands following this instruction
     // 4. switch() over it to decide on a course of action.
@@ -75,5 +77,10 @@ void cpu_run(struct cpu *cpu)
  */
 void cpu_init(struct cpu *cpu)
 {
+   
   // TODO: Initialize the PC and other special registers
+  cpu->PC = 0;
+  
+  memset(cpu->registers, 0, sizeof(cpu->registers));
+  memset(cpu->ram, 0, sizeof(cpu->ram));
 }
