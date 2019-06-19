@@ -9,10 +9,9 @@ unsigned char cpu_ram_read(struct cpu *cpu, unsigned char i){
   return cpu->ram[i];
 }
 
-unsigned char cpu_ram_write(struct cpu *cpu, unsigned char i, unsigned char value){
-  cpu->ram[i] = value;
-  return 0;
-}
+void cpu_ram_write(struct cpu *cpu, unsigned char value, unsigned char i) {
+	 cpu->ram[i] = value;
+ }
 
 
 
@@ -21,36 +20,43 @@ unsigned char cpu_ram_write(struct cpu *cpu, unsigned char i, unsigned char valu
  */
 void cpu_load(struct cpu *cpu, int argc, char *argv[])
 {
-  FILE *fp;
-
-	char line[256];
-
-  if (argc != 2) {
-		printf("usage: fileio filename\n");
-		return 1;
+  if (argc < 2){
+    printf("File does not exist.\n");
+    exit(1);
   }
-  fp = fopen(argv[1], "r");
+  
 
-  if (fp == NULL) {
-		printf("Error opening file %s\n", argv[1]);
-		return 2;
+  char *file = argv[1];
+
+
+  FILE *fp = fopen(file, "r");
+
+
+  if (fp == NULL){
+    printf("File does not exist");
+    exit(1);
   }
-  int address = 0; 
+  else
+  {
+    char file_line[1024];
+    int address = 0;
 
-	while (fgets(line, 1024, fp) != NULL) {
-    char *endptr;
-    unsigned char value = strtoul(line, &endptr, 10);
+    while (fgets(file_line, sizeof(file_line), fp) != NULL)
+    {
 
-		if (line == endptr) {
-			printf("SKIPPING: %s", line);
-			continue;
-		}
-    printf("%02x\n", value);
+      char *endptr;
+      unsigned char value = strtol(file_line, &endptr, 2);
 
-    cpu_ram_write(cpu, value, address++);
 
-    // TODO: Replace this with something less hard-coded
+      if (file_line == NULL){
+        continue;
+      }
+
+      cpu->ram[address] = value;
+      address++;
+    }
   }
+  fclose(fp);
 }
 
 /**
@@ -73,31 +79,46 @@ void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB
 void cpu_run(struct cpu *cpu)
 {
   int running = 1; // True until we get a HLT instruction
+  unsigned char operandA;
+  unsigned char operandB;
 
   while (running) {
     // TODO
     // 1. Get the value of the current instruction (in address PC)
     unsigned char IR = cpu->ram[cpu->PC];
     // 2. Figure out how many operands this next instruction requires
-    unsigned char operands = IR >> 6;
+    unsigned int operands = IR >> 6;
     // 3. Get the appropriate value(s) of the operands following this instruction
-    unsigned char operandA = cpu_ram_read(cpu, cpu->PC + 1);
-    unsigned char operandB = cpu_ram_read(cpu, cpu->PC + 2);
+    if (operands == 2)
+    {
+      operandA = cpu_ram_read(cpu, (cpu->PC + 1) & 0xff);
+      operandB = cpu_ram_read(cpu, (cpu->PC + 2) & 0xff);
+    }
+    else if (operands == 1)
+    {
+      operandA = cpu_ram_read(cpu, (cpu->PC + 1) & 0xff);
+    }
     // 4. switch() over it to decide on a course of action.
     switch(IR){
       // 5. Do whatever the instruction should do according to the spec.
       case HLT:
-        return;
+        running = 0;
+        break;
+
       case LDI:
         cpu->registers[operandA] = operandB;
         break;
+      
       case PRN:
         printf("%d\n", cpu->registers[operandA]);
+        break;
+      
+      default:
         break;
     }
     
     // 6. Move the PC to the next instruction.
-    cpu->PC += (operands + 1);
+    cpu->PC += operands + 1;
   }
 }
 
