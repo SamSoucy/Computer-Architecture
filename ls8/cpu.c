@@ -19,7 +19,7 @@ unsigned char cpu_ram_write(struct cpu *cpu, unsigned char i, unsigned char valu
 /**
  * Load the binary bytes from a .ls8 source file into a RAM array
  */
-void cpu_load(struct cpu *cpu, int argc, char **argv)
+void cpu_load(struct cpu *cpu, int argc, char *argv[])
 {
   FILE *fp;
 
