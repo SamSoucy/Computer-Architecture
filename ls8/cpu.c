@@ -69,6 +69,9 @@ void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB
       // TODO
       cpu->registers[regA] = cpu->registers[regA] * cpu->registers[regB];
       break;
+    case ALU_ADD:
+      cpu->registers[regA] += cpu->registers[regB];
+      break;
 
       // TODO: implement more ALU ops
   }
@@ -135,6 +138,19 @@ void cpu_run(struct cpu *cpu)
       
       case POP:
         cpu->registers[operandA] = pop(cpu);
+        break;
+
+      case CALL:
+        push(cpu, cpu->PC + 1);
+        cpu->PC = cpu->registers[operandA] - 1;
+        break;
+
+      case RET:
+        cpu->PC = pop(cpu);
+        break;
+
+      case ADD:
+        alu(cpu, ALU_ADD, operandA, operandB);
         break;
 
       default:
