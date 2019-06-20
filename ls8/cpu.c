@@ -74,6 +74,17 @@ void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB
   }
 }
 
+unsigned char push(struct cpu *cpu, unsigned char value){
+  cpu->registers[cpu->sp]--;
+  cpu->ram[cpu, cpu->registers[cpu->sp]] = value;
+}
+
+unsigned char pop(struct cpu *cpu){
+  unsigned char value = cpu->ram[cpu->registers[cpu->sp]];
+  cpu->registers[cpu->sp]++;
+  return value;
+}
+
 /**
  * Run the CPU
  */
@@ -117,6 +128,14 @@ void cpu_run(struct cpu *cpu)
       case MUL:
         alu(cpu, ALU_MUL, operandA, operandB);
         break;
+      
+      case PUSH:
+        push(cpu, cpu->registers[operandA]);
+        break;
+      
+      case POP:
+        cpu->registers[operandA] = pop(cpu);
+        break;
 
       default:
         break;
@@ -135,7 +154,8 @@ void cpu_init(struct cpu *cpu)
    
   // TODO: Initialize the PC and other special registers
   cpu->PC = 0;
-  
+  cpu->sp = 7;
+
   memset(cpu->registers, 0, sizeof(cpu->registers));
   memset(cpu->ram, 0, sizeof(cpu->ram));
 }
